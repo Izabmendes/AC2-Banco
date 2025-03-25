@@ -1,0 +1,32 @@
+create database AC2
+
+use AC2 
+
+create table Carros(
+ID int primary key identity(1,1),
+Placa char(7),
+Modelo varchar(30),
+Ano int not null
+)
+
+create table Motoristas(
+ID_Motorista int primary key identity(1,1),
+Nome varchar(50),
+CNH int not null,
+PontosCNH float
+)
+
+create table Multas(
+ID_Multa int primary key identity(1,1),
+FOREIGN KEY (ID_Carro) References Carros(ID),
+DataMulta date, 
+Pontos int
+)
+
+create table Prontuarios(
+ProntuarioID int primary key identity(1,1),
+MotoristaID (FK para Motoristas)
+MultaID (FK para Multas)
+DataAssociacao (data de quando a multa foi associada ao prontuário do
+motorista)
+)
