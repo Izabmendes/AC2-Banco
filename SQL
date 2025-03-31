@@ -2,110 +2,129 @@ create database AC2
 
 use AC2 
 
-create table Carros(
-Placa char(7) primary key,
-ID_Motorista int,
-Modelo varchar(50),
-Ano int 
-)
 
 create table Motoristas(
-MotoristaID int primary key identity(1,1),
-Nome varchar(50),
-CNH int,
-PontosCNH int
+    MotoristaID int primary key identity(1,1),
+    Nome varchar(50),
+    CNH int,
+    PontosCNH int
 )
+
+
+create table Carros(
+    Placa char(7) primary key,
+    ID_Motorista int,
+    Modelo varchar(50),
+    Ano int 
+)
+
 
 create table Multas(
-ID_Multa int primary key identity(1,1),
-constraint fk_Motoristas_Multas foreign key (MotoristaID) references Motoristas(MotoristaID),
-DataMulta date, 
-Pontos int
+    ID_Multa int primary key identity(1,1),
+    MotoristaID int,
+    DataMulta date, 
+    Pontos int,
+    constraint fk_Motoristas_Multas foreign key (MotoristaID) references Motoristas(MotoristaID)
 )
 
+
 create table Prontuarios(
-ProntuarioID int primary key identity(1,1),
-MotoristaID int,
-ID_Multas int,
-constraint fk_Motoristas_Prontuarios foreign key (MotoristaID) references Motoristas(MotoristaID),
-constraint fk_Multas_prontuarios foreign key (ID_Multa) references Multas(ID_Multa),
-DataAssociacao date 
+    ProntuarioID int primary key identity(1,1),
+    MotoristaID int,
+    ID_Multa int,
+    DataAssociacao date,
+    constraint fk_Motoristas_Prontuarios foreign key (MotoristaID) references Motoristas(MotoristaID),
+    constraint fk_Multas_prontuarios foreign key (ID_Multa) references Multas(ID_Multa)
 )
+
 
 create procedure inserirCarros
 @Placa char(7),
-@MotoristaId int,
+@MotoristaID int,
 @Modelo varchar(100)
 as
 insert into Carros(Placa, ID_Motorista, Modelo)
 values(@Placa, @MotoristaID, @Modelo)
 select * from Carros
 
+
 create procedure inserirMotoristas
 @nome varchar(100),
 @cnh int,
 @pontosCnh int
 as
-insert into motoristas(nome, cnh, pontosCnh)
+insert into Motoristas(Nome, CNH, PontosCNH)
 values(@nome, @cnh, @pontosCnh)
-select * from motoristas
+select * from Motoristas
+
 
 create procedure inserirMulta
 @motoristaId int,
 @multaData date,
 @pontos int
 as
-insert into multas(motoristaId, multaData, pontos)
+insert into Multas(MotoristaID, DataMulta, Pontos)
 values(@motoristaId, @multaData, @pontos)
-select * from multas
+select * from Multas
+
 
 create procedure inserirProntuario
 @motoristaId int,
-@multasId int,
-@dataAssociacão date
+@id_multa int,
+@dataAssociacao date
 as
-insert into prontuarios(motoristaId, multasId, dataAssociacão)
-values(@motoristaId, @multasId, @dataAssociacão)
-select* from prontuarios
+insert into Prontuarios(MotoristaID, ID_Multa, DataAssociacao)
+values(@motoristaId, @id_multa, @dataAssociacao)
+select * from Prontuarios
 
 
 create trigger tgr_novaMulta
-on multas for insert
+on Multas for insert
 as
 begin
-declare
-	@multasId int,
-	@motoristaId int,
-	@multaData date,
-	@pontos int
-	select @multasId = multasId ,@motoristaId = motoristaId, @multaData = multaData, @pontos = pontos from inserted
-	exec inserirProntuario @motoristaId, @multasId, @multaData
-	update motoristas set pontosCnh = pontosCnh + @pontos
-	where motoristaId = @motoristaId
+    declare
+        @id_multa int,
+        @motoristaId int,
+        @multaData date,
+        @pontos int
+
+    select @id_multa = ID_Multa, 
+           @motoristaId = MotoristaID, 
+           @multaData = DataMulta, 
+           @pontos = Pontos
+    from inserted
+
+    exec inserirProntuario @motoristaId, @id_multa, @multaData
+
+    update Motoristas 
+    set PontosCNH = PontosCNH + @pontos
+    where MotoristaID = @motoristaId
 end
+
 
 create procedure todosMotoristas
 as
-select motoristas.nome, multas.multasId, motoristas.pontosCnh from motoristas
-inner join multas on motoristas.motoristaId = multas.motoristaId
+select Motoristas.Nome, Multas.ID_Multa, Motoristas.PontosCNH 
+from Motoristas
+inner join Multas on Motoristas.MotoristaID = Multas.MotoristaID
+
 
 create procedure umMotorista
 @motoristaId int
 as
-select motoristas.nome, multas.multasId, motoristas.pontosCnh from motoristas
-inner join multas on motoristas.motoristaId = multas.motoristaId
-where motoristas.motoristaId = @motoristaId
+select Motoristas.Nome, Multas.ID_Multa, Motoristas.PontosCNH 
+from Motoristas
+inner join Multas on Motoristas.MotoristaID = Multas.MotoristaID
+where Motoristas.MotoristaID = @motoristaId
 
 create procedure PontosMotorista
 @motoristaId int
 as
-select motoristas.nome, motoristas.pontosCnh from motoristas
-where motoristas.motoristaId = @motoristaId
+select Motoristas.Nome, Motoristas.PontosCNH 
+from Motoristas
+where Motoristas.MotoristaID = @motoristaId
 
-exec inserirCarro 'abc9876', 2, 'argo'
-
-exec inserirMotorista 'sergio', 12456658, 0
-
-exec inserirMulta 1, '2020-01-30', 10
-
-exec todosMotoristas 
+exec inserirMotoristas 'Matheus', 11755937, 0
+exec inserirCarros 'gwm1598', 1, 'Haval'
+exec inserirMulta 1, '2023-10-16', 10
+exec todosMotoristas
